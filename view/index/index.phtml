@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="cs">
+<head>
+	<meta charset="utf-8">
+	<title><?= $title;?></title>
+	<meta name="description" lang="cs" content="<?= $description;?>">
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="page-header">
+			<h1>
+				<a href="<?= $blogUrl;?>"><?= $title;?></a>
+				<?php if (isset($subtitle)):?>
+				<small><?= $subtitle;?></small>
+				<?php endif;?>
+			</h1>
+		</div>
+		<div id="content" role="main">
+			<?php if (count($posts) > 0):?>
+				<?php foreach ($posts as $post):?>
+				<div id="post-<?= $post->getId();?>" class="post">
+					<div class="post-header">
+						<h2><?= $post->getSubject();?></h2>
+					</div>
+					<div class="post-meta">
+						Autor: <b><?= $post->getUser()->getDisplayName();?></b>,
+						Vytvořeno: <i><?= $post->getCreated()->format('j.n.Y G:i');?></i>,
+						Kategorie: <a href="<?= $blogUrl . '?c=' . $post->getCategory()->getId();?>"><?= $post->getCategory()->getName();?></a>
+					</div>
+					<div class="post-content">
+						<p>
+							<?= $post->getAnnotation();?>
+							<a href="<?= $blogUrl . '?p=' . $post->getId();?>">Více&raquo;</a>
+						</p>
+					</div>
+				</div>
+				<?php endforeach;?>
+			<?php else:?>
+				<p>Prozatím nebyly napsány žádné příspěvky&hellip;</p>
+			<?php endif;?>
+		</div>
+		<div class="page-footer" role="contentinfo">
+			<hr><p><?= $copyright;?></p>
+		</div>
+	</div>
+</body>
+</html>

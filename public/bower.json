@@ -1,0 +1,21 @@
+{
+	"name": "odtimetracker-php-cgi",
+	"version": "1.0.0",
+	"authors": [
+		"ondrejd <ondrejd@gmail.com>"
+	],
+	"description": "odTimeTracker web application written in PHP.",
+	"license": "MIT",
+	"ignore": [
+		"**/.*",
+		"node_modules",
+		"public/bower_components",
+		"test",
+		"tests"
+	],
+	"dependencies": {
+		"jquery": "~2.1.4",
+		"bootstrap": "~3.3.5"
+	},
+	"private": true
+}

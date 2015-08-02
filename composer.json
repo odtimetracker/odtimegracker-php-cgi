@@ -1,0 +1,25 @@
+{
+	"name": "odTimeTracker/odtimetracker-php-cgi",
+	"description": "odTimeTracker web application.",
+	"type": "application",
+	"license": "MPL-2.0",
+	"authors": [
+		{
+			"name": "Ondřej Doněk",
+			"email": "ondrejd@gmail.com",
+			"role": "Developer"
+		}
+	],
+	"minimum-stability": "stable",
+	"autoload": {
+		"psr-0": {
+			"odTimeTracker\\": "src/odTimeTracker/"
+		},
+		"classmap": [
+			"./"
+		]
+	},
+	"require": {
+		"php": ">=5.5"
+	}
+}

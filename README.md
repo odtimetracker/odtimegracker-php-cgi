@@ -1,2 +1,3 @@
-# odtimegracker-php-cgi
-odTimeTracker web application implemented in PHP.
+# odTimeTracker
+
+[odTimeTracker](https://github.com/odTimeTracker/) web application implemented in [PHP](http://php.net/).
