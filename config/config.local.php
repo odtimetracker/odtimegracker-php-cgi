@@ -11,7 +11,7 @@ return array(
 		// ...
 	),
 	'db' => array(
-		'dsn' => 'sqlite:/home/ondrejd/.odtimetracker.sqlite',
+		'dsn' => 'sqlite:/home/ondrejd/.odTimeTracker/db.sqlite',
 		'user' => null,
 		'password' => null,
 	),

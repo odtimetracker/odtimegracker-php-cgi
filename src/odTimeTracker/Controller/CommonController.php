@@ -38,4 +38,32 @@ abstract class CommonController implements ControllerInterface
 
 		$this->config = $config['application'];
 	}
+
+	/**
+	 * Retrieve value of parameter if given name. If parameter is not found 
+	 * returns empty string.
+	 *
+	 * @param string $name
+	 * @param string $default (Optional.)
+	 * @return string
+	 */
+	public function getParam($name, $default = '')
+	{
+		$ret = filter_input(INPUT_GET, $name);
+		return ($ret === false || is_null($ret)) ? $default : $ret;
+	}
+
+	/**
+	 * Retrieve value of POST parameter if given name. If parameter 
+	 * is not found returns empty string.
+	 *
+	 * @param string $name
+	 * @param string $default (Optional.)
+	 * @return string
+	 */
+	public function getPostParam($name, $default = '')
+	{
+		$ret = filter_input(INPUT_POST, $name);
+		return ($ret === false || is_null($ret)) ? $default : $ret;
+	}
 }

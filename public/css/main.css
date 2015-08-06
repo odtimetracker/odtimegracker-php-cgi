@@ -1,0 +1,64 @@
+/**
+ * odtimetracker-php-cgi
+ *
+ * @license Mozilla Public License 2.0 https://www.mozilla.org/MPL/2.0/
+ * @author Ondřej Doněk, <ondrejd@gmail.com>
+ */
+
+body, html {
+	margin: 0 0 0 0;
+	overflow: hidden;
+	padding: 0 0 0 0;
+}
+
+/*
+ * Header
+ */
+#header {
+	z-index: 11;
+}
+
+/*
+ * Activities filter
+ */
+#dashboardFilter {
+	left: 20px;
+	position: fixed;
+	right: 20px;
+	top: 46px;
+	z-index: 10;
+}
+#dashboardFilter .panel-body {
+	padding-top: 30px;
+}
+#dashboardFilter .panel-footer {
+	text-align: right;
+}
+
+/*
+ * Content container
+ */
+#content {
+	bottom: 0px;
+	left: 0px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	position: fixed;
+	right: 0px;
+	top: 50px;
+}
+
+/* 
+ * Activity card
+ */
+.activity-card {
+	border-bottom: 1px solid #e7e7e7;
+	padding: 10px 0 0px 0;
+}
+.activity-card h3 {
+	margin: 0 0 5px 0;
+}
+.activity-card h3 .label {
+	position: relative;
+	top: -4px;
+}

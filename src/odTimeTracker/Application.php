@@ -46,11 +46,37 @@ class Application
 	{
 		$this->config = $config;
 
-		//$requestUri = filter_input(INPUT_SERVER, 'REQUEST_URI');
+		$requestUri = filter_input(INPUT_SERVER, 'REQUEST_URI');
+		if (strpos($requestUri, '/json') === 0) {
+			$this->controller = new \odTimeTracker\Controller\JsonController($this->config);
 
-		$this->controller = new \odTimeTracker\Controller\IndexController($this->config);
-		$this->action = 'index';
+			$action = lcfirst(str_replace('/json/', '', $requestUri));
 
+			// Strip off GET parameters
+			if (strpos($action, '?')) {
+				$parts = explode('?', $action);
+				$action = $parts[0];
+			}
+
+
+			// Check if requested method exists in controller
+			$reflector = new \ReflectionClass($this->controller);
+			if ($reflector->hasMethod($action . 'Action') !== true) {
+				header('Content-Type: application/json; charset=UTF-8');
+				echo json_encode(array(
+					'errorMessage' => 'Requested method `' . $action . '` is not found!'
+				));
+				exit();
+			}
+
+			$this->action = $action;
+		}
+		elseif ($requestUri === '/') {
+			$this->controller = new \odTimeTracker\Controller\IndexController($this->config);
+			$this->action = 'index';
+		}
+
+		header('Status-Code: 404 Not Found');
 		//header('Location: ' . $this->config['url'] . '404');
 	}
 

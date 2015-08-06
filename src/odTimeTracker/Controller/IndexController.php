@@ -22,12 +22,15 @@ class IndexController extends CommonController
 		// 1) Get and prepare view
 		$view = new \odTimeTracker\View\View('index/index.phtml');
 
+		$view->baseUrl = 'http://odtimetracker.local/';
 		$view->title = 'odTimeTracker';
+		$view->description = 'Simple tool for tracking activity.';
 		$view->subtitle = '';
+		$view->copyright = '&copy; 2015 Ondřej Doněk';
 
 		// 2) Get the recent activities
 		$activityMapper = new \odTimeTracker\Model\ActivityMapper($this->db);
-		$view->activities = $activityMapper->selectRecent();
+		$view->activities = $activityMapper->selectRecentActivities(10);
 
 		// 3) Render template
 		$view->render();

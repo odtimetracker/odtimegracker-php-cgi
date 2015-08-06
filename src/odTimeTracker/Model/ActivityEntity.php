@@ -62,6 +62,13 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	protected $stopped;
 
 	/**
+	 * Referenced project entity.
+	 *
+	 * @var \odTimeTracker\Model\ProjectEntity
+	 */
+	protected $project;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param array $data (Optional). Data to initialize entity with.
@@ -87,6 +94,15 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 		$this->setTags(isset($data['Tags']) ? $data['Tags'] : null);
 		$this->setStarted(isset($data['Started']) ? $data['Started'] : null);
 		$this->setStopped(isset($data['Stopped']) ? $data['Stopped'] : null);
+
+		if (array_key_exists('Project.ProjectId', $data)) {
+			$this->project = new ProjectEntity(array(
+				'ProjectId' => $data['Project.ProjectId'],
+				'Name' => $data['Project.Name'],
+				'Description' => $data['Project.Description'],
+				'Created' => $data['Project.Created']
+			));
+		}
 	}
 
 	/**
@@ -202,6 +218,16 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	}
 
 	/**
+	 * Retrieve tags as an array.
+	 *
+	 * @return array
+	 */
+	public function getTagsAsArray()
+	{
+		return explode(',', $this->getTags());
+	}
+
+	/**
 	 * Set tags attached to activity.
 	 *
 	 * @param string $val
@@ -264,7 +290,7 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 		if (($val instanceof \DateTime)) {
 			$this->stopped = $val;
 		}
-		else if (is_string($val)) {
+		else if (is_string($val) && !empty($val)) {
 			$this->stopped = new \DateTime($val);
 		}
 		else {
@@ -272,6 +298,16 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Retrieve entity of the project to which activity belongs.
+	 *
+	 * @return \odTimeTracker\Model\ProjectEntity|null
+	 */
+	public function getProject()
+	{
+		return $this->project;
 	}
 
 	/**
@@ -285,5 +321,62 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 		$stopped = (is_null($this->stopped)) ? new \DateTime('now') : $this->stopped;
 
 		return $this->started->diff($stopped);
+	}
+
+	/**
+	 * Retrieve duration as formatted string.
+	 *
+	 * Note: Currently we are displaying just hours and minutes and we does not expect 
+	 * activities that takes more than day.
+	 *
+	 * @return string
+	 */
+	public function getDurationFormatted()
+	{
+		$duration = $this->getDuration();
+		$ret = '';
+
+		if ($duration->h == 0 && $duration->m == 0 && $duration->s > 0) {
+			return 'Less than minute';
+		}
+
+		if ($duration->h == 1) {
+			$ret .= 'One hour';
+		}
+		else if ($duration->h > 1) {
+			$ret .= $duration->h . ' hours';
+		}
+
+		if ($duration->m == 1) {
+			if (!empty($ret)) {
+				$ret .= ', one minute';
+			}
+			else {
+				$ret .= 'One minute';
+			}
+		}
+		else if ($duration->m > 1) {
+			if (!empty($ret)) {
+				$ret .= ', ' . $duration->m . ' minutes';
+			}
+			else {
+				$ret .= $duration->m . ' minutes';
+			}
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Returns `TRUE` if activity is started and stopped within one day.
+	 *
+	 * @return boolean
+	 */
+	public function isWithinOneDay()
+	{
+		$started = $this->getStarted();
+		$stopped = (is_null($this->stopped)) ? new \DateTime('now') : $this->stopped;
+
+		return ($started->format('Y-m-d') === $stopped->format('Y-m-d'));
 	}
 }
