@@ -119,7 +119,13 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 			'Description' => $this->description,
 			'Tags' => $this->tags,
 			'Started' => $this->started,
-			'Stopped' => $this->stopped
+			'Stopped' => $this->stopped,
+			// *Extra* properties
+			'StartedFormatted' => $this->started->format('j.n.Y G:i'),
+			'StoppedFormatted' => (is_null($this->stopped) || $this->stopped == '') ? '' : $this->stopped->format('j.n.Y G:i'),
+			'Duration' => $this->getDuration(),
+			'DurationFormatted' => $this->getDurationFormatted(),
+			'IsWithinOneDay' => $this->isWithinOneDay()
 		);
 	}
 

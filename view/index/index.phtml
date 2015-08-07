@@ -9,7 +9,7 @@
 	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
 	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/main.css">
-	<script src="scripts/main.js"></script>
+
 </head>
 <body>
 	<nav id="header" class="navbar navbar-default navbar-fixed-top">
@@ -71,97 +71,18 @@
 
 	<!-- Content -->
 	<div id="content" role="main">
-		<?php if (count($activities) > 0):?>
-
-		<?php foreach ($activities as $activity):?>
-		<div id="activity_<?= $activity->getActivityId();?>" class="row activity-card">
-			<div class="col-md-12">
-				<div class="col-md-8">
-					<h3>
-						<?= $activity->getName();?>
-						<?php if (is_null($activity->getStopped())):?>
-						<small><span class="label label-warning">Aktivní</span></small>
-						<?php endif;?>
-					</h3>
-					<div class="activity-meta">
-						<!-- Project -->
-						<span role="presentation" class="dropdown">
-							<button class="btn btn-default btn-xs btn-default dropdown-toggle" type="button" 
-							        id="projectMenu<?= $activity->getActivityId();?>" 
-							        data-toggle="dropdown" aria-haspopup="true" 
-							        aria-expanded="true">
-								<?= $activity->getProject()->getName();?> 
-								<span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu" aria-labelledby="projectMenu<?= $activity->getActivityId();?>">
-								<li role="presentation"><a href="#">Změnit projekt</a></li>
-								<li role="separator" class="divider"></li>
-								<li role="presentation"><a href="#">Upravit projekt</a></li>
-								<li role="separator" class="divider"></li>
-								<!-- TODO Checkbox (included/excluded from filter) -->
-								<li role="presentation"><a href="#">Filtr&hellip;</a></li>
-							</ul>
-						</span>
-						<!-- Tags -->
-						<?php $tagsArr = $activity->getTagsAsArray();?>
-						<?php for ($i=0; $i<count($tagsArr); $i++):?>
-						<span role="presentation" class="dropdown">
-							<button class="btn info btn-xs btn-info dropdown-toggle" type="button" 
-							        id="tagMenu<?= $activity->getActivityId() . '_' . $i;?>" 
-							        data-toggle="dropdown" aria-haspopup="true" 
-							        aria-expanded="true">
-								<?= $tagsArr[$i];?> 
-								<span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu" aria-labelledby="tagMenu<?= $activity->getActivityId() . '_' . $i;?>">
-								<li role="presentation"><a href="#">Odstranit</a></li>
-								<li role="separator" class="divider"></li>
-								<li role="presentation"><a href="#">Upravit</a></li>
-								<li role="separator" class="divider"></li>
-								<!-- TODO Checkbox (included/excluded from filter) -->
-								<li role="presentation"><a href="#">Filtr&hellip;</a></li>
-							</ul>
-						</span>
-						<?php endfor;?>
-					</div>
-					<p style="color: #777; padding-top: 10px;">
-					<?php if (empty($activity->getDescription())):?>
-					<small>Tato aktivita nemá popis&hellip;</small> 
-					<?php else:?>
-					<small><?= $activity->getDescription();?></small>
-					<?php endif;?>
-					</p>
-				</div>
-				<div class="col-md-4" style="text-align: right;">
-					<h4><?= $activity->getDurationFormatted();?></h4>
-					<?php if ($activity->isWithinOneDay() && !is_null($activity->getStopped())):?>
-					<span><?= 
-						$activity->getStarted()->format('j.n.Y G:i') . '-' . 
-						$activity->getStopped()->format('G:i');
-					?></span>
-					<?php elseif (is_null($activity->getStopped())):?>
-					<span>
-						<?= $activity->getStarted()->format('j.n.Y G:i');?>/
-						<button type="button" class="btn btn-danger btn-xs">Zastavit</button>
-					</span>
-					<?php else:?>
-					<span><?= 
-						$activity->getStarted()->format('j.n.Y G:i') . ' - ' . 
-						$activity->getStopped()->format('j.n.Y G:i');
-					?></span>
-					<?php endif;?>
-				</div>
-			</div>
-		</div>
-		<?php endforeach;?>
-
-		<?php else:?>
-		<p>Prozatím nebyly vytvořeny žádné aktivity&hellip;</p>
-		<?php endif;?>
+		<!-- Content will be render here... -->
 	</div><!-- /#content -->
 
 	<!-- <div class="page-footer" role="contentinfo">
 		<hr><p><?= $copyright;?></p>
 	</div> -->
+
+	<!-- JavaScript -->
+	<script src="scripts/main.js"></script>
+	<script>
+$(window).load(odTimeTracker.onLoad);
+$(window).unload(odTimeTracker.onUnload);
+	</script>
 </body>
 </html>

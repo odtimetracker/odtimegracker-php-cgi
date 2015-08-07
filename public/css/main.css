@@ -55,10 +55,17 @@ body, html {
 	border-bottom: 1px solid #e7e7e7;
 	padding: 10px 0 0px 0;
 }
+.activity-card .right-part {
+	text-align: right;
+}
 .activity-card h3 {
 	margin: 0 0 5px 0;
 }
 .activity-card h3 .label {
 	position: relative;
 	top: -4px;
+}
+.activity-card p.description {
+	color: #777;
+	padding-top: 10px;
 }
