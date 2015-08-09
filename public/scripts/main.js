@@ -10,12 +10,178 @@
  * 
  * @var {Object} 
  */
-var odTimeTracker = {};
-(function() {
+var odTimeTracker = {
 	/**
 	 * @type Object Holds projects.
 	 */
-	this.projects = {};
+	projects: {},
+
+	/**
+	 * Add given projects to the cache.
+	 *
+	 * @param {Object} aProjects
+	 * @returns {void}
+	 */
+	cacheProjects: function(aProjects) {
+		for (var projectId in aProjects) {
+			if (aProjects.hasOwnProperty(projectId)) {
+				odTimeTracker.projects[projectId] = aProjects[projectId];
+			}
+		}
+	}, // end cacheProjects(aProjects)
+
+	/**
+	 * Helper method that clears start activity form and closes its dropdown.
+	 * 
+	 * @returns {void}
+	 */
+	clearAndCloseStartActivityForm: function() {
+		jQuery('#newActivity_Name').val('');
+		jQuery('#newActivity_ProjectId').val('');
+		jQuery('#newActivity_Tags').val('');
+		jQuery('#newActivity_Description').val('');
+		jQuery('#addActivityDropdown').dropdown('toggle');
+	}, // end clearAndCloseStartActivityForm()
+
+	/**
+	 * Create HTML for an activity.
+	 * 
+	 * @param {Object} aActivity
+	 * @param {HtmlElement} aParent Parent element.
+	 * @param {Boolean} aSkipRunning
+	 * @returns {void}
+	 */
+	createActivityHtml: function(aActivity, aParent, aSkipRunning) {
+		if (aSkipRunning === true && (aActivity.Stopped === null || aActivity.Stopped === '')) {
+			return;
+		}
+
+		var html = '' +
+			'<div id="activity_' + aActivity.ActivityId + '" class="row activity-card">' +
+				'<div class="col-md-12">' +
+					'<div class="col-md-8 left-part">' +
+						'<h3>{ACTIVITY_NAME}</h3>' +
+						'<div class="activity-meta">' +
+							'<span role="presentation" class="dropdown">' +
+								'<button id="{PROJECT_MENU_ID}" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" class="btn btn-default btn-xs dropdown-toggle">' +
+									'<span>{PROJECT_NAME} <span class="caret"></span>' + 
+								'</button>' +
+								'<ul aria-labelledby="{PROJECT_MENU_ID}" class="dropdown-menu">' +
+									'<li role="presentation"><a href="#">Změnit projekt</a></li>' +
+									'<li role="separator" class="divider"></li>' +
+									'<li role="presentation"><a href="#">Upravit projekt</a></li>' +
+									'<li role="separator" class="divider"></li>' +
+									'<li role="presentation"><a href="#">Filtr...</a></li>' +
+								'</ul>' +
+							'</span>{ACTIVITY_TAGS}' +
+						'</div>' +
+						'<p class="description">{ACTIVITY_DESC}</p>' +
+					'</div>' +
+					'<div class="col-md-4 right-part">' +
+						'<h4>{ACTIVITY_DURATION}</h4>' +
+						'<span>{ACTIVITY_DATES}</span>' +
+					'</div>' +
+				'</div>' +
+			'</div>';
+
+		// Activity name
+		var activityName = aActivity.Name;
+		if (aActivity.Stopped === '' || aActivity.Stopped === null) {
+			activityName += ' <small><span class="label label-warning">Aktivní</span></small>';
+		}
+		html = html.replace('{ACTIVITY_NAME}', activityName);
+
+		// Activity description
+		var activityDesc = aActivity.Description;
+		if (activityDesc === '' || activityDesc === null) {
+			activityDesc = '<small>Tato aktivita nemá popis...</small>';
+		}
+		html = html.replace('{ACTIVITY_DESC}', activityDesc);
+
+		// Project
+		html = html.replace('{PROJECT_NAME}', odTimeTracker.projects[aActivity.ProjectId].Name);
+		html = html.replace('{PROJECT_MENU_ID}', 'projectMenu_' + aActivity.ActivityId);
+
+		// Tags
+		var tagsHtml = '';
+		var tags = aActivity.Tags.split(',');
+		for (var i=0; i<tags.length; i++) {
+			tagsHtml += odTimeTracker.createTagHtml(
+				tags[i],
+				'tagMenu_' + aActivity.ActivityId + '_' + i
+			) + ((i + 1 < tags.length) ? ' ' : '');
+		}
+		html = html.replace('{ACTIVITY_TAGS}', (tagsHtml === '') ? '' : ' ' + tagsHtml);
+
+
+		// Duration
+		html = html.replace('{ACTIVITY_DURATION}', aActivity.DurationFormatted);
+
+		// Activity created/stopped dates
+		var datesHtml = aActivity.StartedFormatted + ' - ';
+
+		if (
+			aActivity.IsWithinOneDay === true && 
+			(aActivity.Stopped !== null || aActivity.Stopped !== '')
+		) {
+			console.log('is within one day');
+			datesHtml += aActivity.StoppedFormatted.split(' ')[1];
+		}
+		else if (aActivity.Stopped === null || aActivity.Stopped === '') {
+			console.log('is not stopped');
+			datesHtml += '<button type="button" class="btn btn-danger btn-xs">Zastavit</button>';
+		}
+		else {
+			console.log('is not within one day');
+			datesHtml += aActivity.StoppedFormatted;
+		}
+
+		html = html.replace('{ACTIVITY_DATES}', datesHtml);
+
+		// Append HTML to the parent
+		jQuery(html).appendTo(aParent);
+	}, // createActivityHtml(aActivity, aParent, aSkipRunning)
+
+	/**
+	 * Create HTML for heading to section with activities list.
+	 * 
+	 * @param {String} aId
+	 * @param {String} aLabel
+	 * @param {String} aDescription
+	 * @param {HtmlElement} aParent Parent element.
+	 * @returns {void}
+	 */
+	createActivitiesHeaderHtml: function(aId, aLabel, aDescription, aParent) {
+		jQuery(
+			'<div id="' + aId + '" class="page-header row">' +
+				'<h2>' + aLabel + '<small>' + aDescription + '</small></h2>' +
+			'</div>'
+		).appendTo(aParent);
+	}, // end createActivitiesHeaderHtml
+
+	/**
+	 * Helper method that returns HTML for single activity tag.
+	 *
+	 * @return {String}
+	 */
+	createTagHtml: function(aTagName, aTagMenuId) {
+		var html = '' +
+			'<span role="presentation" class="dropdown">' +
+				'<button id="{TAG_MENU_ID}" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" class="btn btn-info btn-xs dropdown-toggle">' +
+					'{TAG_NAME} <span class="caret"></span>' +
+				'</button>' +
+				'<ul aria-labelledby="{TAG_MENU_ID}" class="dropdown-menu">' +
+					'<li role="presentation"><a href="#">Upravit tag</a></li>' +
+					'<li role="separator" class="divider"></li>' +
+					'<li role="presentation"><a href="#">Odstranit projekt</a></li>' +
+					'<li role="separator" class="divider"></li>' +
+					'<li role="presentation"><a href="#">Filtr...</a></li>' +
+				'</ul>' +
+			'</span>';
+		html = html.replace('{TAG_NAME}', aTagName);
+		html = html.replace('{TAG_MENU_ID}', aTagMenuId);
+		return html;
+	}, // end createTagHtml(aTagName, aTagMenuId)
 
 	/**
 	 * Retrieve URL for given method.
@@ -23,315 +189,250 @@ var odTimeTracker = {};
 	 * @param {String} aMethod
 	 * @returns {String}
 	 */
-	this.getDataUrl = function(aMethod) {
+	getDataUrl: function(aMethod) {
 		var url = 'http://odtimetracker.local/json/' + aMethod;
 		console.log('odTimeTracker.getDataUrl', url);
 		return url;	
-	};
+	}, // end getDataUrl()
 
 	/**
-	 * Create HTML for an activity.
-	 * 
-	 * @param {Object} aActivity
-	 * @param {HtmlElement|String} aParent Parent element.
-	 * @returns {void}
+	 * Returns given date as string formatted `Y-m-d'.
+	 *
+	 * @param {Date} aDate
+	 * @returns {String}
 	 */
-	this.createActivityHtml = function(aActivity, aParent) {
-		var cont = document.createElement('div');
-		cont.setAttribute('id', 'activity_' + aActivity.ActivityId);
-		cont.classList.add('row');
-		cont.classList.add('activity-card');
-
-		var innerCont = document.createElement('div');
-		innerCont.classList.add('col-md-12');
-
-		var leftCont = document.createElement('div');
-		leftCont.classList.add('col-md-8');
-		leftCont.classList.add('left-part');
-
-		// Activity name
-		var h3 = document.createElement('h3');
-		h3.appendChild(document.createTextNode(aActivity.Name));
-		
-		if (aActivity.Stopped === '' || aActivity.Stopped === null) {
-			var h3Small = document.createElement('small');
-			var h3SmallSpan = document.createElement('span');
-			h3SmallSpan.classList.add('label');
-			h3SmallSpan.classList.add('label-warning');
-			h3SmallSpan.appendChild(document.createTextNode('Aktivní'));
-			h3Small.appendChild(h3SmallSpan);
-		}
-
-		leftCont.appendChild(h3)
-
-		var metaDiv = document.createElement('div');
-
-		// Project
-		var projectName = odTimeTracker.projects[aActivity.ProjectId].Name;
-		var pdSpan = document.createElement('span');
-		pdSpan.setAttribute('role', 'presentation');
-		pdSpan.classList.add('dropdown');
-		var pdBtn = document.createElement('button');
-		pdBtn.setAttribute('id', 'projectMenu_' + aActivity.ActivityId);
-		pdBtn.setAttribute('type', 'button');
-		pdBtn.setAttribute('data-toggle', 'dropdown');
-		pdBtn.setAttribute('aria-haspopup', 'true');
-		pdBtn.setAttribute('aria-expanded', 'true');
-		pdBtn.classList.add('btn');
-		pdBtn.classList.add('btn-default');
-		pdBtn.classList.add('btn-xs');
-		pdBtn.classList.add('dropdown-toggle');
-		pdBtn.appendChild(document.createTextNode(projectName + ' '));
-		var pdBtnSpan = document.createElement('span');
-		pdBtnSpan.classList.add('caret');
-		pdBtn.appendChild(pdBtnSpan);
-		pdSpan.appendChild(pdBtn);
-		var pdUl = document.createElement('ul');
-		pdUl.setAttribute('aria-labelledby', 'projectMenu_' + aActivity.ActivityId);
-		pdUl.classList.add('dropdown-menu');
-		// Menuitem 1
-		var pdUlLi1 = document.createElement('li');
-		pdUlLi1.setAttribute('role', 'presentation');
-		var pdUlLi1A = document.createElement('a');
-		pdUlLi1A.setAttribute('href', '#');
-		pdUlLi1A.appendChild(document.createTextNode('Změnit projekt'));
-		pdUlLi1.appendChild(pdUlLi1A);
-		pdUl.appendChild(pdUlLi1);
-		// Separator
-		var pdUlLi2 = document.createElement('li');
-		pdUlLi2.setAttribute('role', 'separator');
-		pdUlLi2.classList.add('divider');
-		pdUl.appendChild(pdUlLi2);
-		// Menuitem 2
-		var pdUlLi3 = document.createElement('li');
-		pdUlLi3.setAttribute('role', 'presentation');
-		var pdUlLi3A = document.createElement('a');
-		pdUlLi3A.setAttribute('href', '#');
-		pdUlLi3A.appendChild(document.createTextNode('Upravit projekt'));
-		pdUlLi3.appendChild(pdUlLi3A);
-		pdUl.appendChild(pdUlLi3);
-		// Separator
-		var pdUlLi4 = document.createElement('li');
-		pdUlLi4.setAttribute('role', 'separator');
-		pdUlLi4.classList.add('divider');
-		pdUl.appendChild(pdUlLi4);
-		// Menuitem 3
-		var pdUlLi5 = document.createElement('li');
-		pdUlLi5.setAttribute('role', 'presentation');
-		var pdUlLi5A = document.createElement('a');
-		pdUlLi5A.setAttribute('href', '#');
-		pdUlLi5A.appendChild(document.createTextNode('Filter...'));
-		pdUlLi5.appendChild(pdUlLi5A);
-		pdUl.appendChild(pdUlLi5);
-		pdSpan.appendChild(pdUl);
-		metaDiv.appendChild(pdSpan);
-		metaDiv.appendChild(document.createTextNode(' '));
-
-		// Tags
-		var tags = aActivity.Tags.split(',');
-		for (var i=0; i<tags.length; i++) {
-			var tagSpanId = 'tagMenu_' + aActivity.ActivityId + '_' + i;
-			var tagSpan = document.createElement('span');
-			tagSpan.setAttribute('role', 'presentation');
-			tagSpan.classList.add('dropdown');
-			var tagBtn = document.createElement('button');
-			tagBtn.setAttribute('id', tagSpanId);
-			tagBtn.setAttribute('type', 'button');
-			tagBtn.setAttribute('data-toggle', 'dropdown');
-			tagBtn.setAttribute('aria-haspopup', 'true');
-			tagBtn.setAttribute('aria-expanded', 'true');
-			tagBtn.classList.add('btn');
-			tagBtn.classList.add('btn-info');
-			tagBtn.classList.add('btn-xs');
-			tagBtn.classList.add('dropdown-toggle');
-			tagBtn.appendChild(document.createTextNode(tags[i] + ' '));
-			var tagBtnSpan = document.createElement('span');
-			tagBtnSpan.classList.add('caret');
-			tagBtn.appendChild(tagBtnSpan);
-			tagSpan.appendChild(tagBtn);
-			var tagUl = document.createElement('ul');
-			tagUl.setAttribute('aria-labelledby', tagSpanId);
-			tagUl.classList.add('dropdown-menu');
-			// Menuitem 1
-			var tagUlLi1 = document.createElement('li');
-			tagUlLi1.setAttribute('role', 'presentation');
-			var tagUlLi1A = document.createElement('a');
-			tagUlLi1A.setAttribute('href', '#');
-			tagUlLi1A.appendChild(document.createTextNode('Změnit projekt'));
-			tagUlLi1.appendChild(tagUlLi1A);
-			tagUl.appendChild(tagUlLi1);
-			// Separator
-			var tagUlLi2 = document.createElement('li');
-			tagUlLi2.setAttribute('role', 'separator');
-			tagUlLi2.classList.add('divider');
-			tagUl.appendChild(tagUlLi2);
-			// Menuitem 2
-			var tagUlLi3 = document.createElement('li');
-			tagUlLi3.setAttribute('role', 'presentation');
-			var tagUlLi3A = document.createElement('a');
-			tagUlLi3A.setAttribute('href', '#');
-			tagUlLi3A.appendChild(document.createTextNode('Upravit projekt'));
-			tagUlLi3.appendChild(tagUlLi3A);
-			tagUl.appendChild(tagUlLi3);
-			// Separator
-			var tagUlLi4 = document.createElement('li');
-			tagUlLi4.setAttribute('role', 'separator');
-			tagUlLi4.classList.add('divider');
-			tagUl.appendChild(tagUlLi4);
-			// Menuitem 3
-			var tagUlLi5 = document.createElement('li');
-			tagUlLi5.setAttribute('role', 'presentation');
-			var tagUlLi5A = document.createElement('a');
-			tagUlLi5A.setAttribute('href', '#');
-			tagUlLi5A.appendChild(document.createTextNode('Filter...'));
-			tagUlLi5.appendChild(tagUlLi5A);
-			tagUl.appendChild(tagUlLi5);
-			tagSpan.appendChild(tagUl);
-			metaDiv.appendChild(tagSpan);
-
-			if (i + 1 < tags.length) {
-				metaDiv.appendChild(document.createTextNode(' '));
-			}
-		}
-
-		leftCont.appendChild(metaDiv);
-
-		// Activity description
-		var descPara = document.createElement('p');
-		descPara.classList.add('description');
-		var descParaSmall = document.createElement('small');
-		var descParaSmallText = aActivity.Description 
-		if (aActivity.Description === '' || aActivity.Description === null) {
-			descParaSmallText = 'Tato aktivita nemá popis...';
-		}
-		descParaSmall.appendChild(document.createTextNode(descParaSmallText));
-		descPara.appendChild(descParaSmall);
-		leftCont.appendChild(descPara);
-		
-		innerCont.appendChild(leftCont);
-
-		var rightCont = document.createElement('div');
-		rightCont.classList.add('col-md-4');
-		rightCont.classList.add('right-part');
-
-		// Duration
-		var h4 = document.createElement('h4');
-		h4.appendChild(document.createTextNode(aActivity.DurationFormatted));
-		rightCont.appendChild(h4);
-
-		var datesSpan = document.createElement('span');
-		datesSpan.appendChild(document.createTextNode(aActivity.StartedFormatted));
-		datesSpan.appendChild(document.createTextNode(' - '));
-
-		if (
-			aActivity.IsWithinOneDay === true && 
-			(aActivity.Stopped !== null || aActivity.Stopped !== '')
-		) {
-			var toStr = aActivity.StoppedFormatted.split(' ')[1];
-			datesSpan.appendChild(document.createTextNode(toStr));
-		}
-		else if (aActivity.Stopped === null || aActivity.Stopped === '') {
-			var stopBtn = document.createElement('button');
-			stopBtn.setAttribute('type', 'button');
-			stopBtn.classList.add('btn');
-			stopBtn.classList.add('btn-danger');
-			stopBtn.classList.add('btn-xs');
-			stopBtn.appendChild(document.createTextNode('Zastavit'));
-			datesSpan.appendChild(stopBtn);
-		}
-		else {
-			datesSpan.appendChild(document.createTextNode(aActivity.StoppedFormatted));
-		}
-
-		rightCont.appendChild(datesSpan);
-		innerCont.appendChild(rightCont);
-
-		cont.appendChild(innerCont);
-
-		// TODO Check if `aParent` is `HTMLElement` or what!
-		aParent.appendChild(cont);
-	};
+	formatDateYmd: function(aDate) {
+		var month = aDate.getMonth() + 1;
+		var date = aDate.getDate();
+		return aDate.getFullYear() + '-' +
+			((month < 10) ? '0' + month : month) + '-' +
+			((date < 10) ? '0' + date : date);
+	}, // end formatDateYmd(aDate)
 
 	/**
-	 * Called when loading JSON with activities is finished.
-	 * 
-	 * @param {Object} aData
-	 * @param {String} aStatus
-	 * @param {jQuery.XHR} aRequest
-	 * @returns {void} 
+	 * Returns given date as string formatted by RFC3339.
+	 *
+	 * @param {Date} aDate
+	 * @returns {String}
 	 */
-	this.loadingActivitiesDone = function(aData, aStatus, aRequest) {
-		if ('errorMessage' in aData) {
-			console.log('Error:', aData.errorMessage);
-		}
-
-		if (!('activities' in aData)) {
-			console.log('Error:', 'No `activities` found in given data!');
-			return;
-		}
-
-		if (!Array.isArray(aData.activities)) {
-			console.log('Error:', 'Property `data.activities` is not an array!');
-			return;
-		}
-
-		odTimeTracker.projects = aData.projects;
-
-		var content = document.getElementById('content');
-
-		for (
-			var i = 0; 
-			i < aData.activities.length; 
-			odTimeTracker.createActivityHtml(aData.activities[i++], content)
-		);
-	};
-
-	/**
-	 * Called when loading JSON with activities failed.
-	 * 
-	 * @param {jQuery.XHR} aRequest
-	 * @param {String} aStatus
-	 * @param {Object} aError
-	 * @returns {void} 
-	 */
-	this.loadingActivitiesFail = function(aRequest, aStatus, aError) {
-		console.log('odTimeTracker.loadingActivitiesFail', aRequest, aStatus, aError);
-	};
+	formatDateRFC3339: function(aDate) {
+		console.log('XXX Implement `odTimeTracker.formatDateRFC3339`!');
+	}, // end formatDateRFC3339(aDate)
 
 	/**
 	 * Load activities.
+	 *
+	 * @param {String} aDateFrom
+	 * @param {String} aDateTo
+	 * @returns {void}
+	 */
+	loadActivities: function(aDateFrom, aDateTo) {
+		console.log('odTimeTracker.loadActivities', aDateFrom, aDateTo);
+		var reqUrl = odTimeTracker.getDataUrl('selectActivities');
+		var reqData = { dateFrom: aDateFrom, dateTo: aDateTo };
+		console.log(reqData);
+		jQuery.ajax({ dataType: 'json', url: reqUrl, data: reqData }).
+		done(function (data, status, req) {
+			console.log('odTimeTracker.loadActivities().done', data/*, status, req*/);
+
+			if ('errorMessage' in data) {
+				console.log('Error:', data.errorMessage);
+			}
+
+			if (!('activities' in data)) {
+				console.log('Error:', 'No `activities` found in given data!');
+				return;
+			}
+
+			if (!Array.isArray(data.activities)) {
+				console.log('Error:', 'Property `data.activities` is not an array!');
+				return;
+			}
+
+			if ('projects' in data) {
+				odTimeTracker.cacheProjects(data.projects);
+			}
+
+			var headerId = 'activitiesHeader_activities' + aDateFrom.replace('-', '');
+			var headerTitle = 'Aktivity ze dne ' + aDateFrom + '.';
+			var content = document.getElementById('content');
+
+			odTimeTracker.createActivitiesHeaderHtml(headerId, aDateFrom, headerTitle, content);
+
+			if (data.activities.length === 0) {
+				var html = '' + 
+					'<div class="row">' + 
+						'<div class="col-md-12">' + 
+							'<p class="description">' +
+								'V daný den nebyly uloženy žádné aktivity...' +
+							'</div>' +
+						'</div>' +
+					'</div>';
+				jQuery(html).appendTo('#' + headerId);
+				return;
+			}
+			
+			// Print all activities
+			for (
+				var i = 0;
+				i < data.activities.length;
+				odTimeTracker.createActivityHtml(data.activities[i++], content, true)
+			);
+		}).
+		fail(function (req, status, err) {
+			console.log('odTimeTracker.loadActivities().fail'/*, req, status, err*/);
+		});
+	}, // end loadActivities(aDateFrom, aDateTo)
+
+	/**
+	 * Load activities that were started today.
+	 *
+	 * @returns {void}
+	 */
+	loadTodayActivities: function() {
+		var day1 = new Date();
+		var day2 = new Date();
+		day2.setDate(day2.getDate() - 1);
+
+		odTimeTracker.loadActivities(
+			odTimeTracker.formatDateYmd(day1),
+			odTimeTracker.formatDateYmd(day2)
+		);
+	}, // end loadTodayActivities()
+
+	/**
+	 * Load activities that were started yesterday.
+	 *
+	 * @returns {void}
+	 */
+	loadYesterdayActivities: function() {
+		var day1 = new Date();
+		day1.setDate(day1.getDate() - 1);
+		var day2 = new Date();
+		day2.setDate(day2.getDate() - 2);
+
+		odTimeTracker.loadActivities(
+			odTimeTracker.formatDateYmd(day1),
+			odTimeTracker.formatDateYmd(day2)
+		);
+	}, // end loadYesterdayActivities()
+
+	/**
+	 * Select currently running activity.
 	 * 
 	 * @returns {void}
 	 */
-	this.loadActivities = function() {
-		console.log('odTimeTracker.loadActivities');
-		$.ajax({
+	selectRunningActivity: function() {
+		console.log('odTimeTracker.selectRunningActivity');
+		jQuery.ajax({
 			dataType: 'json',
-			url: odTimeTracker.getDataUrl('selectActivities'),
-			data: {
-				dateFrom: '2015-06-03',
-				dateTo: '2015-08-06'
-			}
+			url: odTimeTracker.getDataUrl('selectRunningActivity')
 		}).
-		done(odTimeTracker.loadingActivitiesDone).
-		fail(odTimeTracker.loadingActivitiesFail);
-	};
+		done(function (data, status, req) {
+			console.log('odTimeTracker.selectRunningActivity().done', data/*, status, req*/);
+
+			if ('errorMessage' in data) {
+				console.log('Error:', data.errorMessage);
+			}
+
+			if (!('runningActivity' in data)) {
+				console.log('There is no running activity!');
+				return;
+			}
+
+			if ('projects' in data) {
+				odTimeTracker.cacheProjects(data.projects);
+			}
+
+			var content = document.getElementById('content');
+			odTimeTracker.createActivitiesHeaderHtml(
+				'activitiesHeader_runningActivity',
+				'Aktuální aktivita',
+				'Aktivita, na které nyní pracujete.',
+				content
+			);
+			odTimeTracker.createActivityHtml(
+				data.runningActivity, 
+				content, 
+				false
+			);
+		}).
+		fail(function (req, status, err) {
+			console.log('odTimeTracker.selectRunningActivity().fail'/*, req, status, err*/);
+		});
+	}, // end selectRunningActivity()
+
+	/**
+	 * Submit start activity form.
+	 *
+	 * @param {HTMLFormElementPrototype} aForm
+	 * @returns {void}
+	 */
+	submitStartActivityForm: function(aForm) {
+		console.log('odTimeTracker.submitStartActivityForm');
+		console.log(aForm);
+		var dataArr = $(aForm).serializeArray();
+		console.log(dataArr);
+		
+		jQuery.ajax({
+			dataType: 'json',
+			'type': 'POST',
+			url: odTimeTracker.getDataUrl('startActivity'),
+			data: dataArr
+		}).
+		done(function (data, status, req) {
+			console.log('odTimeTracker.selectRunningActivity().done', data/*, status, req*/);
+			// ...
+			odTimeTracker.clearAndCloseStartActivityForm();
+		}).
+		fail(function (req, status, err) {
+			console.log('odTimeTracker.submittingStartActivityFail().fail'/*, req, status, err*/);
+			odTimeTracker.clearAndCloseStartActivityForm();
+		});
+	}, // end submitStartActivityForm(aForm)
 
 	// ======================================================================
 	// Below are event handlers
 
-	// ....
-
 	/**
 	 * On application load.
 	 * 
 	 * @param {jQuery.Event} aEvent
 	 * @returns {void}
 	 */
-	this.onLoad = function(aEvent) {
+	onLoad: function(aEvent) {
 		console.log('odTimeTracker.onLoad');
-		odTimeTracker.loadActivities();
-	};
+
+		// Load currently running activity
+		odTimeTracker.selectRunningActivity();
+
+		// Load today activities
+		odTimeTracker.loadTodayActivities();
+
+		// Load yesterday activities
+		odTimeTracker.loadYesterdayActivities();
+
+		// Load day before yesterday activities
+		var day1 = new Date();
+		day1.setDate(day1.getDate() - 2);
+		var day2 = new Date();
+		day2.setDate(day2.getDate() - 3);
+		
+		odTimeTracker.loadActivities(
+			odTimeTracker.formatDateYmd(day1),
+			odTimeTracker.formatDateYmd(day2)
+		);
+
+		// Event handlers for start activity form
+		/*jQuery('#startActivityForm').on('reset', function (event) {
+			event.preventDefault();
+			odTimeTracker.clearAndCloseStartActivityForm();
+		});
+		jQuery('#startActivityForm').on('submit', function (event) {
+			event.preventDefault();
+			odTimeTracker.submitStartActivityForm(this);
+		});*/
+	}, // end onLoad(aEvent)
 
 	/**
 	 * On application load.
@@ -339,9 +440,9 @@ var odTimeTracker = {};
 	 * @param {jQuery.Event} aEvent
 	 * @returns {void}
 	 */
-	this.onUnload = function(aEvent) {
+	onUnload: function(aEvent) {
 		console.log('odTimeTracker.onUnload');
 		// ...
-	};
+	} // end onUnload(aEvent)
 
-}).apply(odTimeTracker)
+}; // End of odTimeTracker

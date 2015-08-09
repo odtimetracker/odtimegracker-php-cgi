@@ -127,6 +127,48 @@ EOD
 	}
 
 	/**
+	 * Starts new activity. Returns `FALSE` when inserting failed. Otherwise 
+	 * returns instance of {@see \odTimeTracker\Model\ActivityEntity}.
+	 *
+	 * @param string $name
+	 * @param integer $projectId
+	 * @param string $description (Optional.)
+	 * @param string $tags (Optional.)
+	 * @return \odTimeTracker\Model\ActivityEntity|boolean
+	 */
+	public function startActivity($name, $projectId, $description = '', $tags = '')
+	{
+		$started = new \DateTime();
+		$startedStr = $started->format(\DateTime::RFC3339);
+
+		$stmt = $this->db->getPdo()->prepare(<<<EOD
+INSERT INTO `Activities` (`ProjectId`, `Name`, `Description`, `Tags`, `Started`) 
+VALUES ( :projectId , :name , :description , :tags, :started );
+EOD
+		);
+
+		$stmt->bindParam(':projectId', $projectId, \PDO::PARAM_INT);
+		$stmt->bindParam(':name', $name, \PDO::PARAM_STR);
+		$stmt->bindParam(':description', $description, \PDO::PARAM_STR);
+		$stmt->bindParam(':tags', $tags, \PDO::PARAM_STR);
+		$stmt->bindParam(':started', $startedStr, \PDO::PARAM_STR);
+		$res = $stmt->execute();
+
+		if ($res === false) {
+			return false;
+		}
+
+		return new ActivityEntity(array(
+			'ActivityId' => $this->db->getPdo() ->lastInsertId(),
+			'ProjectId' => $projectId,
+			'Name' => $name,
+			'Description' => empty($description) ? null : $description,
+			'Tags' => empty($tags) ? null : $tags,
+			'Started' => $started
+		));
+	}
+
+	/**
 	 * Stops currently running activity.
 	 *
 	 * @return boolean

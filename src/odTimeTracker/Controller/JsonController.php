@@ -72,6 +72,46 @@ class JsonController extends CommonController
 	}
 
 	/**
+	 * Starts new activity.
+	 *
+	 * @return void
+	 */
+	public function startActivityAction()
+	{
+		header('Content-Type: application/json; charset=UTF-8');
+
+		// Check given parameters
+		$name = $this->getPostParam('Name');
+		$projectId = $this->getPostParam('ProjectId');
+		$description = $this->getPostParam('Description');
+		$tags = $this->getPostParam('Tags');
+
+		if (empty($name) || empty($projectId) || !is_numeric($projectId)) {
+			echo json_encode(array(
+				'errorMessage' => 'Bad parameters given!'
+			));
+			return;
+		}
+
+		// TODO Check if `$projectId` is correct!
+
+		$activityMapper = new \odTimeTracker\Model\ActivityMapper($this->db);
+		$activity = $activityMapper->startActivity($name, (int) $projectId, $description, $tags);
+
+		if (!($activity instanceof \odTimeTracker\Model\ActivityEntity)) {
+			echo json_encode(array(
+				'errorMessage' => 'Activity was not successfully started!'
+			));
+			return;
+		}
+
+		echo json_encode(array(
+			'runningActivity' => $activity,
+			'message' => 'Activity was successfully started.'
+		));
+	}
+
+	/**
 	 * Stops currently running activity.
 	 *
 	 * @return void

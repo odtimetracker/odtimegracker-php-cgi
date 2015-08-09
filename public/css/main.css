@@ -17,6 +17,13 @@ body, html {
 #header {
 	z-index: 11;
 }
+#header .add_activity-dropdown {
+	padding-bottom: 0px;
+	width: 340px;
+}
+#header .add_activity-dropdown .panel-footer {
+	text-align: right;
+}
 
 /*
  * Activities filter
@@ -47,13 +54,27 @@ body, html {
 	right: 0px;
 	top: 50px;
 }
+#content .page-header {
+	background-color: #f7f7f7;
+	margin: 0 0 0 0;
+}
+#content .page-header h2 {
+	margin-left: 30px;
+}
+#content .page-header h2 small {
+	padding-left: 10px;
+}
+#content .page-header p.description {
+	color: #777;
+	margin-left: 30px;
+}
 
 /* 
  * Activity card
  */
 .activity-card {
 	border-bottom: 1px solid #e7e7e7;
-	padding: 10px 0 0px 0;
+	padding: 10px 20px 0px 20px;
 }
 .activity-card .right-part {
 	text-align: right;

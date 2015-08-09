@@ -58,7 +58,6 @@ class Application
 				$action = $parts[0];
 			}
 
-
 			// Check if requested method exists in controller
 			$reflector = new \ReflectionClass($this->controller);
 			if ($reflector->hasMethod($action . 'Action') !== true) {
