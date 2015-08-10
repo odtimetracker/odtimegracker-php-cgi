@@ -76,7 +76,9 @@ class ProjectEntity implements \odTimeTracker\Model\EntityInterface
 			'ProjectId' => $this->projectId,
 			'Name' => $this->name,
 			'Description' => $this->description,
-			'Created' => $this->created
+			'Created' => $this->created,
+			// *Extra* properties
+			'CreatedFormatted' => $this->getCreatedFormatted()
 		);
 	}
 
@@ -151,6 +153,16 @@ class ProjectEntity implements \odTimeTracker\Model\EntityInterface
 	public function getCreated()
 	{
 		return $this->created;
+	}
+
+	/**
+	 * Retrieve formatted date time when was project created.
+	 *
+	 * @return string|null
+	 */
+	public function getCreatedFormatted()
+	{
+		return (is_null($this->created)) ? null : $this->created->format('j.n.Y G:i');
 	}
 
 	/**

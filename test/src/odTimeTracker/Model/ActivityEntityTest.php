@@ -32,11 +32,20 @@ class ActivityEntityTest extends PHPUnit_Framework_TestCase
 		),
 		array(
 			'ActivityId' => 3,
-			'ProjectId' => 1,
+			'ProjectId' => 2,
 			'Name' => 'Activity #3',
+			'Description' => 'Description of the third activity.',
+			'Tags' => 'tag',
+			'Started' => '2015-07-29T14:05:00+01:00',
+			'Stopped' => '2015-07-29T18:35:00+01:00'
+		),
+		array(
+			'ActivityId' => 3,
+			'ProjectId' => 1,
+			'Name' => 'Activity #4',
 			'Description' => null,
 			'Tags' => null,
-			'Started' => '2015-07-29T14:10:00+01:00',
+			'Started' => '2015-07-29T20:10:00+01:00',
 			'Stopped' => null
 		)
 	);
@@ -141,16 +150,102 @@ class ActivityEntityTest extends PHPUnit_Framework_TestCase
 		}
 	}
 
+	public function testGetArrayCopyExtraValues()
+	{
+		$activity = new ActivityEntity($this->_testData[0]);
+		$data = $activity->getArrayCopy();
+
+		$this->assertEquals($data['StartedFormatted'], '29.7.2015 13:10', '"StartedFormatted" was not set correctly');
+		$this->assertEquals($data['StoppedFormatted'], '29.7.2015 13:15', '"StoppedFormatted" was not set correctly');
+		$this->assertEquals($data['Duration']->i, 5, '"Duration" was not set correctly');
+		$this->assertEquals($data['DurationFormatted'], '5 minutes', '"DurationFormatted" was not set correctly');
+		$this->assertEquals($data['IsWithinOneDay'], true, '"IsWithinOneDay" was not set correctly');
+	}
+
 	public function testGetDuration()
 	{
-		// Test the first activity
 		$activity1 = new ActivityEntity($this->_testData[0]);
 		$duration1 = $activity1->getDuration();
 		$this->assertEquals(5, $duration1->i);
-		// Test the second activity
+
 		$activity2 = new ActivityEntity($this->_testData[1]);
 		$duration2 = $activity2->getDuration();
 		$this->assertEquals(30, $duration2->i);
 		$this->assertEquals(30, $duration2->s);
+
+		$activity3 = new ActivityEntity($this->_testData[2]);
+		$duration3 = $activity3->getDuration();
+		$this->assertEquals(4, $duration3->h);
+		$this->assertEquals(30, $duration3->i);
+		$this->assertEquals(0, $duration3->s);
+	}
+
+	public function testGetDurationFormatted()
+	{
+		$activity1 = new ActivityEntity($this->_testData[0]);
+		$this->assertEquals($activity1->getDurationFormatted(), '5 minutes');
+
+		$activity2 = new ActivityEntity($this->_testData[1]);
+		$this->assertEquals($activity2->getDurationFormatted(), '30 minutes');
+
+		$activity3 = new ActivityEntity($this->_testData[2]);
+		$this->assertEquals($activity3->getDurationFormatted(), '4 hours, 30 minutes');
+	}
+
+	public function testGetTagsAsArray()
+	{
+		$activity1 = new ActivityEntity($this->_testData[0]);
+		$this->assertEquals($activity1->getTagsAsArray(), ['tag1', 'tag2']);
+
+		$activity2 = new ActivityEntity($this->_testData[1]);
+		$this->assertEquals($activity2->getTagsAsArray(), ['tag2', 'tag3']);
+
+		$activity3 = new ActivityEntity($this->_testData[2]);
+		$this->assertEquals($activity3->getTagsAsArray(), ['tag']);
+
+		$activity4 = new ActivityEntity($this->_testData[3]);
+		$this->assertEquals($activity4->getTagsAsArray(), []);
+	}
+
+	public function testIsWithinOneDay()
+	{
+		$activity1 = new ActivityEntity($this->_testData[0]);
+		$this->assertEquals($activity1->isWithinOneDay(), true);
+
+		$activity2 = new ActivityEntity($this->_testData[1]);
+		$this->assertEquals($activity2->isWithinOneDay(), true);
+
+		$activity3 = new ActivityEntity($this->_testData[2]);
+		$this->assertEquals($activity3->isWithinOneDay(), true);
+
+		$activity4 = new ActivityEntity($this->_testData[3]);
+		$this->assertEquals($activity4->isWithinOneDay(), false);
+	}
+
+	public function testGetStartedFormatted()
+	{
+		$activity1 = new ActivityEntity($this->_testData[0]);
+		$this->assertEquals($activity1->getStartedFormatted(), '29.7.2015 13:10');
+
+		$activity2 = new ActivityEntity($this->_testData[1]);
+		$this->assertEquals($activity2->getStartedFormatted(), '29.7.2015 13:30');
+
+		$activity3 = new ActivityEntity($this->_testData[2]);
+		$this->assertEquals($activity3->getStartedFormatted(), '29.7.2015 14:05');
+
+		$activity4 = new ActivityEntity($this->_testData[3]);
+		$this->assertEquals($activity4->getStartedFormatted(), '29.7.2015 20:10');
+	}
+
+	public function testGetStoppedFormatted()
+	{
+		$activity1 = new ActivityEntity($this->_testData[0]);
+		$this->assertEquals($activity1->getStoppedFormatted(), '29.7.2015 13:15');
+
+		$activity2 = new ActivityEntity($this->_testData[1]);
+		$this->assertEquals($activity2->getStoppedFormatted(), '29.7.2015 14:00');
+
+		$activity3 = new ActivityEntity($this->_testData[2]);
+		$this->assertEquals($activity3->getStoppedFormatted(), '29.7.2015 18:35');
 	}
 }

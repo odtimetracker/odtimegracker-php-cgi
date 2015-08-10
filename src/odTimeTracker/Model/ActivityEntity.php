@@ -121,8 +121,8 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 			'Started' => $this->started,
 			'Stopped' => $this->stopped,
 			// *Extra* properties
-			'StartedFormatted' => $this->started->format('j.n.Y G:i'),
-			'StoppedFormatted' => (is_null($this->stopped) || $this->stopped == '') ? '' : $this->stopped->format('j.n.Y G:i'),
+			'StartedFormatted' => $this->getStartedFormatted(),
+			'StoppedFormatted' => $this->getStoppedFormatted(),
 			'Duration' => $this->getDuration(),
 			'DurationFormatted' => $this->getDurationFormatted(),
 			'IsWithinOneDay' => $this->isWithinOneDay()
@@ -230,6 +230,10 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	 */
 	public function getTagsAsArray()
 	{
+		if ($this->getTags() === null || empty($this->getTags())) {
+			return [];
+		}
+
 		return explode(',', $this->getTags());
 	}
 
@@ -255,6 +259,16 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	}
 
 	/**
+	 * Retrieve formatted date time when was activity started.
+	 *
+	 * @return string|null
+	 */
+	public function getStartedFormatted()
+	{
+		return (is_null($this->started)) ? null : $this->started->format('j.n.Y G:i');
+	}
+
+	/**
 	 * Set date time when was the activity started.
 	 *
 	 * @param DateTime|string $val Date time of creation.
@@ -262,13 +276,13 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	 */
 	public function setStarted($val)
 	{
-		if (($val instanceof \DateTime)) {
+		if (is_null($val) || empty($val)) {
+			$this->started = null;
+		} else if (($val instanceof \DateTime)) {
 			$this->started = $val;
-		}
-		else if (is_string($val)) {
+		} else if (is_string($val)) {
 			$this->started = new \DateTime($val);
-		}
-		else {
+		} else {
 			$this->started = null;
 		}
 
@@ -286,6 +300,16 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	}
 
 	/**
+	 * Retrieve formatted date time when was activity stopped.
+	 *
+	 * @return string|null
+	 */
+	public function getStoppedFormatted()
+	{
+		return (is_null($this->stopped)) ? null : $this->stopped->format('j.n.Y G:i');
+	}
+
+	/**
 	 * Set date time when was the activity stopped.
 	 *
 	 * @param DateTime|string $val Date time of creation.
@@ -293,13 +317,13 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	 */
 	public function setStopped($val)
 	{
-		if (($val instanceof \DateTime)) {
+		if (is_null($val) || empty($val)) {
+			$this->stopped = null;
+		} else if (($val instanceof \DateTime)) {
 			$this->stopped = $val;
-		}
-		else if (is_string($val) && !empty($val)) {
+		} else if (is_string($val)) {
 			$this->stopped = new \DateTime($val);
-		}
-		else {
+		} else {
 			$this->stopped = null;
 		}
 
@@ -324,9 +348,10 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	 */
 	public function getDuration()
 	{
+		$started = (is_null($this->started)) ? new \DateTime('now') : $this->started;
 		$stopped = (is_null($this->stopped)) ? new \DateTime('now') : $this->stopped;
 
-		return $this->started->diff($stopped);
+		return $started->diff($stopped);
 	}
 
 	/**
@@ -336,37 +361,49 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	 * activities that takes more than day.
 	 *
 	 * @return string
+	 / @todo Finish this (working only for short activities).
 	 */
 	public function getDurationFormatted()
 	{
 		$duration = $this->getDuration();
-		$ret = '';
 
-		if ($duration->h == 0 && $duration->m == 0 && $duration->s > 0) {
+		if ($duration->d == 0 && $duration->h == 0 && $duration->i == 0) {
 			return 'Less than minute';
 		}
 
-		if ($duration->h == 1) {
-			$ret .= 'One hour';
-		}
-		else if ($duration->h > 1) {
-			$ret .= $duration->h . ' hours';
+		$ret = '';
+
+		if ($duration->d == 1) {
+			$ret .= 'One day';
+		} else if ($duration->d > 1) {
+			$ret .= $duration->d . ' days';
 		}
 
-		if ($duration->m == 1) {
+		if ($duration->h == 1) {
 			if (!empty($ret)) {
-				$ret .= ', one minute';
+				$ret .= ', one hour';
+			} else {
+				$ret .= 'One hour';
 			}
-			else {
-				$ret .= 'One minute';
+		} else if ($duration->h > 1) {
+			if (!empty($ret)) {
+				$ret .= ', ' . $duration->h . ' hours';
+			} else {
+				$ret .= $duration->h . ' hours';
 			}
 		}
-		else if ($duration->m > 1) {
+
+		if ($duration->i == 1) {
 			if (!empty($ret)) {
-				$ret .= ', ' . $duration->m . ' minutes';
+				$ret .= ', one minute';
+			} else {
+				$ret .= 'One minute';
 			}
-			else {
-				$ret .= $duration->m . ' minutes';
+		} else if ($duration->i > 1) {
+			if (!empty($ret)) {
+				$ret .= ', ' . $duration->i . ' minutes';
+			} else {
+				$ret .= $duration->i . ' minutes';
 			}
 		}
 
@@ -380,7 +417,7 @@ class ActivityEntity implements \odTimeTracker\Model\EntityInterface
 	 */
 	public function isWithinOneDay()
 	{
-		$started = $this->getStarted();
+		$started = (is_null($this->started)) ? new \DateTime('now') : $this->started;
 		$stopped = (is_null($this->stopped)) ? new \DateTime('now') : $this->stopped;
 
 		return ($started->format('Y-m-d') === $stopped->format('Y-m-d'));
