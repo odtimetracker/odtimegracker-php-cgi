@@ -127,8 +127,9 @@ EOD
 	}
 
 	/**
-	 * Starts new activity. Returns `FALSE` when inserting failed. Otherwise 
-	 * returns instance of {@see \odTimeTracker\Model\ActivityEntity}.
+	 * Starts new activity. Returns `FALSE` when inserting failed (usually
+	 * when another activity is running). Otherwise returns instance of
+	 * {@see \odTimeTracker\Model\ActivityEntity}.
 	 *
 	 * @param string $name
 	 * @param integer $projectId
@@ -138,6 +139,11 @@ EOD
 	 */
 	public function startActivity($name, $projectId, $description = '', $tags = '')
 	{
+		// Only one activity can be executed at once!
+		if (($this->selectRunningActivity() instanceof ActivityEntity)) {
+			return false;
+		}
+
 		$started = new \DateTime();
 		$startedStr = $started->format(\DateTime::RFC3339);
 
