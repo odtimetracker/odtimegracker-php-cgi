@@ -35,6 +35,7 @@ class ProjectEntityTest extends PHPUnit_Framework_TestCase
 	public function testConstructWithNulls()
 	{
 		$entity = new ProjectEntity();
+		$this->assertNull($entity->getId());
 		$this->assertNull($entity->getProjectId(), '"ProjectId" should initially be null');
 		$this->assertNull($entity->getName(), '"Name" should initially be null');
 		$this->assertNull($entity->getDescription(), '"Description" should initially be null');
@@ -45,6 +46,7 @@ class ProjectEntityTest extends PHPUnit_Framework_TestCase
 	{
 		foreach ($this->_testData as $data) {
 			$entity = new ProjectEntity($data);
+			$this->assertEquals($data['ProjectId'], $entity->getId());
 			$this->assertEquals($data['ProjectId'], $entity->getProjectId(), '"ProjectId" was not set correctly');
 			$this->assertEquals($data['Name'], $entity->getName(), '"Name" was not set correctly');
 			$this->assertEquals($data['Description'], $entity->getDescription(), '"Description" was not set correctly');
@@ -58,6 +60,7 @@ class ProjectEntityTest extends PHPUnit_Framework_TestCase
 			$entity = new ProjectEntity();
 			$entity->exchangeArray($data);
 			$entity->exchangeArray(array());
+			$this->assertNull($entity->getId());
 			$this->assertNull($entity->getProjectId(), '"ProjectId" should be null');
 			$this->assertNull($entity->getName(), '"Name" should be null');
 			$this->assertNull($entity->getDescription(), '"Description" should be null');

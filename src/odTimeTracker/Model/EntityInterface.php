@@ -26,4 +26,11 @@ interface EntityInterface
 	 * @return array
 	 */
 	public function getArrayCopy();
+
+	/**
+	 * Retrieve numeric identifier of the entity (usually primary key).
+	 *
+	 * @return integer|null
+	 */
+	public function getId();
 }

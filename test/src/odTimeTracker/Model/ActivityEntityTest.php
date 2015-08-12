@@ -53,6 +53,7 @@ class ActivityEntityTest extends PHPUnit_Framework_TestCase
 	public function testConstructWithNulls()
 	{
 		$entity = new ActivityEntity();
+		$this->assertNull($entity->getId());
 		$this->assertNull($entity->getActivityId(), '"ActivityId" should initially be null');
 		$this->assertNull($entity->getProjectId(), '"ProjectId" should initially be null');
 		$this->assertNull($entity->getName(), '"Name" should initially be null');
@@ -66,6 +67,7 @@ class ActivityEntityTest extends PHPUnit_Framework_TestCase
 	{
 		foreach ($this->_testData as $data) {
 			$entity = new ActivityEntity($data);
+			$this->assertEquals($data['ActivityId'], $entity->getId());
 			$this->assertEquals($data['ActivityId'], $entity->getActivityId(), '"ActivityId" was not set correctly');
 			$this->assertEquals($data['ProjectId'], $entity->getProjectId(), '"ProjectId" was not set correctly');
 			$this->assertEquals($data['Name'], $entity->getName(), '"Name" was not set correctly');
@@ -87,6 +89,7 @@ class ActivityEntityTest extends PHPUnit_Framework_TestCase
 			$entity = new ActivityEntity();
 			$entity->exchangeArray($data);
 			$entity->exchangeArray(array());
+			$this->assertNull($entity->getId());
 			$this->assertNull($entity->getActivityId(), '"ActivityId" should be null');
 			$this->assertNull($entity->getProjectId(), '"ProjectId" should be null');
 			$this->assertNull($entity->getName(), '"Name" should be null');
@@ -102,6 +105,7 @@ class ActivityEntityTest extends PHPUnit_Framework_TestCase
 		foreach ($this->_testData as $data) {
 			$entity = new ActivityEntity();
 			$entity->exchangeArray($data);
+			$this->assertEquals($data['ActivityId'], $entity->getId());
 			$this->assertEquals($data['ActivityId'], $entity->getActivityId(), '"ActivityId" was not set correctly');
 			$this->assertEquals($data['ProjectId'], $entity->getProjectId(), '"ProjectId" was not set correctly');
 			$this->assertEquals($data['Name'], $entity->getName(), '"Name" was not set correctly');

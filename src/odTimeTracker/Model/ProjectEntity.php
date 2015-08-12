@@ -83,6 +83,16 @@ class ProjectEntity implements \odTimeTracker\Model\EntityInterface
 	}
 
 	/**
+	 * Retrieve numeric identifier of the entity (usually primary key).
+	 *
+	 * @return integer|null
+	 */
+	public function getId()
+	{
+		return $this->getProjectId();
+	}
+
+	/**
 	 * Retrieve project's identifier.
 	 *
 	 * @return integer|null
