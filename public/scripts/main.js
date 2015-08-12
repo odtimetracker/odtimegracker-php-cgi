@@ -52,6 +52,7 @@ var odTimeTracker = {
 	 * @returns {void}
 	 */
 	createActivityHtml: function(aActivity, aParent, aSkipRunning) {
+console.log(aActivity);		
 		if (aSkipRunning === true && (aActivity.Stopped === null || aActivity.Stopped === '')) {
 			return;
 		}
@@ -120,16 +121,16 @@ var odTimeTracker = {
 		// Activity created/stopped dates
 		var datesHtml = aActivity.StartedFormatted + ' - ';
 
-		if (
+		if (aActivity.Stopped === null || aActivity.Stopped === '') {
+			console.log('is not stopped');
+			datesHtml += '<button type="button" class="btn btn-danger btn-xs" onclick="odTimeTracker.stopActivity(event);">Zastavit</button>';
+		}
+		else if (
 			aActivity.IsWithinOneDay === true && 
 			(aActivity.Stopped !== null || aActivity.Stopped !== '')
 		) {
 			console.log('is within one day');
 			datesHtml += aActivity.StoppedFormatted.split(' ')[1];
-		}
-		else if (aActivity.Stopped === null || aActivity.Stopped === '') {
-			console.log('is not stopped');
-			datesHtml += '<button type="button" class="btn btn-danger btn-xs">Zastavit</button>';
 		}
 		else {
 			console.log('is not within one day');
@@ -280,7 +281,7 @@ var odTimeTracker = {
 			);
 		}).
 		fail(function (req, status, err) {
-			console.log('odTimeTracker.loadActivities().fail'/*, req, status, err*/);
+			console.log('odTimeTracker.loadActivities().fail', req, status, err);
 		});
 	}, // end loadActivities(aDateFrom, aDateTo)
 
@@ -292,7 +293,7 @@ var odTimeTracker = {
 	loadTodayActivities: function() {
 		var day1 = new Date();
 		var day2 = new Date();
-		day2.setDate(day2.getDate() - 1);
+		day2.setDate(day2.getDate() + 1);
 
 		odTimeTracker.loadActivities(
 			odTimeTracker.formatDateYmd(day1),
@@ -309,7 +310,7 @@ var odTimeTracker = {
 		var day1 = new Date();
 		day1.setDate(day1.getDate() - 1);
 		var day2 = new Date();
-		day2.setDate(day2.getDate() - 2);
+		day2.setDate(day2.getDate());
 
 		odTimeTracker.loadActivities(
 			odTimeTracker.formatDateYmd(day1),
@@ -336,6 +337,13 @@ var odTimeTracker = {
 			}
 
 			if (!('runningActivity' in data)) {
+				console.log('There is no running activity!');
+				return;
+			}
+
+			// TODO Toto je tu pouze docasne - kdyz neni aktivita, tak 
+			//      by `runningActivity` vubec nemela v JSONu byt!
+			if (data.runningActivity === null) {
 				console.log('There is no running activity!');
 				return;
 			}
@@ -381,15 +389,37 @@ var odTimeTracker = {
 			data: dataArr
 		}).
 		done(function (data, status, req) {
-			console.log('odTimeTracker.selectRunningActivity().done', data/*, status, req*/);
+			console.log('odTimeTracker.submitStartActivityForm().done', data/*, status, req*/);
 			// ...
 			odTimeTracker.clearAndCloseStartActivityForm();
 		}).
 		fail(function (req, status, err) {
-			console.log('odTimeTracker.submittingStartActivityFail().fail'/*, req, status, err*/);
+			console.log('odTimeTracker.submitStartActivityForm().fail'/*, req, status, err*/);
 			odTimeTracker.clearAndCloseStartActivityForm();
 		});
 	}, // end submitStartActivityForm(aForm)
+	
+	/**
+	 * Stop activity.
+	 */
+	stopActivity: function(aEvent) {
+		console.log('odTimeTracker.stopActivity');
+
+		jQuery.ajax({
+			dataType: 'json',
+			url: odTimeTracker.getDataUrl('stopRunningActivity')
+		}).
+		done(function (data, status, req) {
+			console.log('odTimeTracker.stopActivity().done', data/*, status, req*/);
+			// ...
+			// TODO This will be replaced by reloading just displayed data!
+			location.reload();
+			//odTimeTracker.clearAndCloseStartActivityForm();
+		}).
+		fail(function (req, status, err) {
+			console.log('odTimeTracker.stopActivity().fail'/*, req, status, err*/);	
+		});
+	}, // end stopActivity(aEvent)
 
 	// ======================================================================
 	// Below are event handlers
@@ -416,11 +446,33 @@ var odTimeTracker = {
 		var day1 = new Date();
 		day1.setDate(day1.getDate() - 2);
 		var day2 = new Date();
-		day2.setDate(day2.getDate() - 3);
+		day2.setDate(day2.getDate() - 1);
 		
 		odTimeTracker.loadActivities(
 			odTimeTracker.formatDateYmd(day1),
 			odTimeTracker.formatDateYmd(day2)
+		);
+
+		// Load day before+before yesterday activities
+		var day3 = new Date();
+		day3.setDate(day3.getDate() - 3);
+		var day4 = new Date();
+		day4.setDate(day4.getDate() - 2);
+		
+		odTimeTracker.loadActivities(
+			odTimeTracker.formatDateYmd(day3),
+			odTimeTracker.formatDateYmd(day4)
+		);
+
+		// Load day before+before yesterday activities
+		var day5 = new Date();
+		day5.setDate(day5.getDate() - 4);
+		var day6 = new Date();
+		day6.setDate(day6.getDate() - 3);
+		
+		odTimeTracker.loadActivities(
+			odTimeTracker.formatDateYmd(day5),
+			odTimeTracker.formatDateYmd(day6)
 		);
 
 		// Event handlers for start activity form

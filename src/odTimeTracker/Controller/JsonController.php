@@ -49,8 +49,8 @@ class JsonController extends CommonController
 	 */
 	public function selectActivitiesAction()
 	{
-		$dateFrom = $this->getParam('dateFrom', date('Y-m-d'));
-		$dateTo = $this->getParam('dateTo', date('Y-m-d', time() + 60*60*24));
+		$dateFrom = $this->getParam('dateFrom', date('Y-m-d', strtotime(date('Y-m-d') . ' -1 day')));
+		$dateTo = $this->getParam('dateTo', date('Y-m-d'));
 
 		$activityMapper = new \odTimeTracker\Model\ActivityMapper($this->db);
 		$activities = $activityMapper->selectActivitiesForInterval($dateFrom, $dateTo);
