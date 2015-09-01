@@ -90,6 +90,7 @@ EOD
 	 *
 	 * @param \odTimeTracker\Model\ProjectEntity $entity
 	 * @return \odTimeTracker\Model\ProjectEntity|boolean Returns `FALSE` if anything goes wrong.
+	 * @todo Implement `ProjectMapper.update`!
 	 */
 	function update($entity)
 	{

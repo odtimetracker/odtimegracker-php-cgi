@@ -31,7 +31,7 @@ class ActivityMapper extends AbstractMapper
 	{
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
-CREATE TABLE IF NOT EXISTS `$table` (
+CREATE TABLE IF NOT EXISTS $table (
 	ActivityId INTEGER PRIMARY KEY,
 	ProjectId INTEGER NOT NULL,
 	Name TEXT,
@@ -51,7 +51,7 @@ EOD
 	 * Insert new record.
 	 *
 	 * @param \odTimeTracker\Model\ActivityEntity|array $data
-	 * @return \odTimeTracker\Model\ActivityEntity|boolean Returns `FALSE` if anything goes wrong.
+	 * @return \odTimeTracker\Model\ActivityEntity|boolean Returns FALSE if anything goes wrong.
 	 */
 	function insert($entity)
 	{
@@ -72,7 +72,7 @@ EOD
 
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
-INSERT INTO `$table` (`ProjectId`, `Name`, `Description`, `Tags`, `Started`, `Stopped`) 
+INSERT INTO $table (ProjectId, Name, Description, Tags, Started, Stopped) 
 VALUES ( :projectId, :name , :desc , :tags , :started , :stopped );
 EOD
 		);
@@ -103,7 +103,8 @@ EOD
 	 * Update record.
 	 *
 	 * @param \odTimeTracker\Model\ActivityEntity $entity
-	 * @return \odTimeTracker\Model\ActivityEntity|boolean Returns `FALSE` if anything goes wrong.
+	 * @return \odTimeTracker\Model\ActivityEntity|boolean Returns FALSE if anything goes wrong.
+	 * @todo Implement `ActivityMapper.update`!
 	 */
 	function update($entity)
 	{
@@ -118,7 +119,33 @@ EOD
 	 */
 	function selectAll($limit = 0)
 	{
-		// ...
+		$table = self::TABLE_NAME;
+		$stmt = $this->db->getPdo()->prepare(<<<EOD
+SELECT 
+	t1.*,
+	t2.ProjectId AS "Project.ProjectId",
+	t2.Name AS "Project.Name",
+	t2.Description AS "Project.Description",
+	t2.Created AS "Project.Created"   
+FROM $table AS t1 
+LEFT JOIN Projects AS t2 ON t1.ProjectId = t2.ProjectId 
+ORDER BY t1.Started DESC ;
+EOD
+		);
+		$res = $stmt->execute();
+
+		if ($res === false) {
+			return array();
+		}
+
+		$rows = $stmt->fetchAll();
+
+		$ret = array();
+		foreach ($rows as $row) {
+			array_push($ret, new ActivityEntity($row));
+		}
+
+		return $ret;
 	}
 
 	/**
@@ -132,14 +159,14 @@ EOD
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
 SELECT 
-	`t1`.*,
-	`t2`.`ProjectId` AS `Project.ProjectId`,
-	`t2`.`Name` AS `Project.Name`,
-	`t2`.`Description` AS `Project.Description`,
-	`t2`.`Created` AS `Project.Created`   
-FROM `$table` AS `t1` 
-LEFT JOIN `Projects` AS `t2` ON `t1`.`ProjectId` = `t2`.`ProjectId` 
-ORDER BY `t1`.`Started` DESC 
+	t1.*,
+	t2.ProjectId AS "Project.ProjectId",
+	t2.Name AS "Project.Name",
+	t2.Description AS "Project.Description",
+	t2.Created AS "Project.Created"
+FROM $table AS t1 
+LEFT JOIN Projects AS t2 ON t1.ProjectId = t2.ProjectId 
+ORDER BY t1.Started DESC 
 LIMIT :limit ;
 EOD
 		);
@@ -170,14 +197,14 @@ EOD
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
 SELECT 
-	`t1`.*,
-	`t2`.`ProjectId` AS `Project.ProjectId`,
-	`t2`.`Name` AS `Project.Name`,
-	`t2`.`Description` AS `Project.Description`,
-	`t2`.`Created` AS `Project.Created`   
-FROM `$table` AS `t1` 
-LEFT JOIN `Projects` AS `t2` ON `t1`.`ProjectId` = `t2`.`ProjectId` 
-WHERE `t1`.`Stopped` IS NULL OR `t1`.`Stopped` = '' 
+	t1.*,
+	t2.ProjectId AS "Project.ProjectId",
+	t2.Name AS "Project.Name",
+	t2.Description AS "Project.Description",
+	t2.Created AS "Project.Created"
+FROM $table AS t1 
+LEFT JOIN Projects AS t2 ON t1.ProjectId = t2.ProjectId 
+WHERE t1.Stopped IS NULL OR t1.Stopped = '' 
 LIMIT 1 ;
 EOD
 		);
@@ -208,15 +235,15 @@ EOD
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
 SELECT 
-	`t1`.*,
-	`t2`.`ProjectId` AS `Project.ProjectId`,
-	`t2`.`Name` AS `Project.Name`,
-	`t2`.`Description` AS `Project.Description`,
-	`t2`.`Created` AS `Project.Created`   
-FROM `$table` AS `t1` 
-LEFT JOIN `Projects` AS `t2` ON `t1`.`ProjectId` = `t2`.`ProjectId` 
-WHERE `t1`.`Started` > :dateFrom AND `t1`.`Started` < :dateTo 
-ORDER BY `t1`.`Started` DESC ;
+	t1.*,
+	t2.ProjectId AS "Project.ProjectId",
+	t2.Name AS "Project.Name",
+	t2.Description AS "Project.Description",
+	t2.Created AS "Project.Created"
+FROM $table AS t1 
+LEFT JOIN Projects AS t2 ON t1.ProjectId = t2.ProjectId 
+WHERE t1.Started > :dateFrom AND t1.Started < :dateTo  
+ORDER BY t1.Started DESC ;
 EOD
 		);
 		$stmt->bindParam(':dateFrom', $dateFrom, \PDO::PARAM_STR);
@@ -238,7 +265,7 @@ EOD
 	}
 
 	/**
-	 * Starts new activity. Returns `FALSE` when inserting failed (usually
+	 * Starts new activity. Returns FALSE when inserting failed (usually
 	 * when another activity is running). Otherwise returns instance of
 	 * {@see \odTimeTracker\Model\ActivityEntity}.
 	 *
@@ -260,7 +287,7 @@ EOD
 
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
-INSERT INTO `$table` (`ProjectId`, `Name`, `Description`, `Tags`, `Started`) 
+INSERT INTO $table (ProjectId, Name, Description, Tags, Started) 
 VALUES ( :projectId , :name , :description , :tags, :started );
 EOD
 		);
@@ -305,9 +332,9 @@ EOD
 
 		$table = self::TABLE_NAME;
 		$stmt = $this->db->getPdo()->prepare(<<<EOD
-UPDATE `$table` 
-SET `Stopped` = :stopped 
-WHERE `ActivityId` = :activityId ;
+UPDATE $table 
+SET Stopped = :stopped 
+WHERE ActivityId = :activityId ;
 EOD
 		);
 		$stmt->bindParam(':stopped', $nowStr, \PDO::PARAM_STR);

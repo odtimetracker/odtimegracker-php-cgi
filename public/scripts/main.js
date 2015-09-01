@@ -52,7 +52,8 @@ var odTimeTracker = {
 	 * @returns {void}
 	 */
 	createActivityHtml: function(aActivity, aParent, aSkipRunning) {
-console.log(aActivity);		
+		//console.log(aActivity);
+
 		if (aSkipRunning === true && (aActivity.Stopped === null || aActivity.Stopped === '')) {
 			return;
 		}
@@ -122,18 +123,18 @@ console.log(aActivity);
 		var datesHtml = aActivity.StartedFormatted + ' - ';
 
 		if (aActivity.Stopped === null || aActivity.Stopped === '') {
-			console.log('is not stopped');
+			//console.log('is not stopped');
 			datesHtml += '<button type="button" class="btn btn-danger btn-xs" onclick="odTimeTracker.stopActivity(event);">Zastavit</button>';
 		}
 		else if (
 			aActivity.IsWithinOneDay === true && 
 			(aActivity.Stopped !== null || aActivity.Stopped !== '')
 		) {
-			console.log('is within one day');
+			//console.log('is within one day');
 			datesHtml += aActivity.StoppedFormatted.split(' ')[1];
 		}
 		else {
-			console.log('is not within one day');
+			//console.log('is not within one day');
 			datesHtml += aActivity.StoppedFormatted;
 		}
 
@@ -192,8 +193,8 @@ console.log(aActivity);
 	 */
 	getDataUrl: function(aMethod) {
 		var url = 'http://odtimetracker.local/json/' + aMethod;
-		console.log('odTimeTracker.getDataUrl', url);
-		return url;	
+		//console.log('odTimeTracker.getDataUrl', url);
+		return url;
 	}, // end getDataUrl()
 
 	/**
@@ -228,16 +229,17 @@ console.log(aActivity);
 	 * @returns {void}
 	 */
 	loadActivities: function(aDateFrom, aDateTo) {
-		console.log('odTimeTracker.loadActivities', aDateFrom, aDateTo);
+		//console.log('odTimeTracker.loadActivities', aDateFrom, aDateTo);
 		var reqUrl = odTimeTracker.getDataUrl('selectActivities');
 		var reqData = { dateFrom: aDateFrom, dateTo: aDateTo };
-		console.log(reqData);
+		//console.log(reqData);
 		jQuery.ajax({ dataType: 'json', url: reqUrl, data: reqData }).
 		done(function (data, status, req) {
-			console.log('odTimeTracker.loadActivities().done', data/*, status, req*/);
+			//console.log('odTimeTracker.loadActivities().done', data/*, status, req*/);
 
 			if ('errorMessage' in data) {
 				console.log('Error:', data.errorMessage);
+				return;
 			}
 
 			if (!('activities' in data)) {
@@ -330,10 +332,11 @@ console.log(aActivity);
 			url: odTimeTracker.getDataUrl('selectRunningActivity')
 		}).
 		done(function (data, status, req) {
-			console.log('odTimeTracker.selectRunningActivity().done', data/*, status, req*/);
+			//console.log('odTimeTracker.selectRunningActivity().done', data/*, status, req*/);
 
 			if ('errorMessage' in data) {
 				console.log('Error:', data.errorMessage);
+				return;
 			}
 
 			if (!('runningActivity' in data)) {
@@ -476,14 +479,14 @@ console.log(aActivity);
 		);
 
 		// Event handlers for start activity form
-		/*jQuery('#startActivityForm').on('reset', function (event) {
+		jQuery('#startActivityForm').on('reset', function (event) {
 			event.preventDefault();
 			odTimeTracker.clearAndCloseStartActivityForm();
 		});
 		jQuery('#startActivityForm').on('submit', function (event) {
 			event.preventDefault();
 			odTimeTracker.submitStartActivityForm(this);
-		});*/
+		});
 	}, // end onLoad(aEvent)
 
 	/**
