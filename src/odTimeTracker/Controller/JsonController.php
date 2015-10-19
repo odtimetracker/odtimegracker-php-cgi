@@ -72,6 +72,25 @@ class JsonController extends CommonController
 	}
 
 	/**
+	 * Returns JSON with projects.
+	 *
+	 * @return void
+	 */
+	public function selectProjectsAction()
+	{
+		$projectMapper = new \odTimeTracker\Model\ProjectMapper($this->db);
+		$projects = $projectMapper->selectAll();
+		$data = array('projects' => array());
+
+		foreach ($projects as $project) {
+			$data['projects'][] = $project->getArrayCopy();
+		}
+
+		header('Content-Type: application/json; charset=UTF-8');
+		echo json_encode($data);
+	}
+
+	/**
 	 * Starts new activity.
 	 *
 	 * @return void

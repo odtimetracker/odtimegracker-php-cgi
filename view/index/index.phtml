@@ -1,97 +1,160 @@
 <!doctype html>
 <html lang="cs">
-<head>
-	<meta charset="utf-8">
-	<title><?= $title;?></title>
-	<meta name="description" lang="cs" content="<?= $description;?>">
-	<script src="bower_components/jquery/dist/jquery.min.js"></script>
-	<script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
-	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="css/main.css">
-</head>
-<body>
-	<nav id="header" class="navbar navbar-default navbar-fixed-top">
-		<div class="container-fluid">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-					<span class="sr-only">Zobrazit/Skrýt navigaci</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="#">odTimeTracker</a>
-			</div>
-			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-				<ul class="nav navbar-nav">
-					<li>
-						<a href="#" data-toggle="collapse" data-target="#dashboardFilter" aria-expanded="false" aria-controls="dashboardFilter" title="Filter">
-							<span class="glyphicon glyphicon-wrench"></span>
-						</a>
-					</li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li class="dropdown">
-						<a id="addActivityDropdown" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-							<span class="glyphicon glyphicon-plus"></span>
-						</a>
-						<div class="dropdown-menu add_activity-dropdown">
-							<form id="startActivityForm">
-								<div class="panel-body">
-									<div class="form-group">
-										<label for="newActivity_Name">Jméno:</label>
-										<input class="form-control" id="newActivity_Name" name="Name" placeholder="Název aktivity" value="">
-									</div>
-									<div class="form-group">
-										<label for="newActivity_ProjectId">Projekt:</label>
-										<input class="form-control" id="newActivity_ProjectId" name="ProjectId" placeholder="Název projektu" value="">
-									</div>
-									<div class="form-group">
-										<label for="newActivity_Tags">Tagy:</label>
-										<input class="form-control" id="newActivity_Tags" name="Tags" placeholder="Tagy oddělené čárkou" value="">
-									</div>
-									<div class="form-group">
-										<label for="newActivity_Description">Description:</label>
-										<textarea class="form-control" id="newActivity_Description" name="Description" placeholder="Podrobnější popis aktivity"></textarea>
-									</div>
-								</div>
-								<div class="panel-footer">
-									<button class="btn btn-default" type="reset">Zrušit</button>
-									<button class="btn btn-primary" type="submit">Potvrdit</button>
-								</div>
-							</form>
-						</div>
-					</li>
-				</ul>
-			</div><!-- /.navbar-collapse -->
-		</div><!-- /.container-fluid -->
-	</nav>	
-
-	<!-- Filter -->
-	<div id="dashboardFilter" class="panel panel-default collapse">
-		<div class="panel-body">
-			<p><strong style="color:#f30;">XXX Filter ...</strong></p>
-		</div>
-		<div class="panel-footer">
-			<button type="button" class="btn btn-primary">Potvrdit</button>
-			<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#dashboardFilter" aria-expanded="false" aria-controls="dashboardFilter">Zavřít</button>
-		</div>
-	</div><!-- /#dashboardFilter -->
-
-	<!-- Content -->
-	<div id="content" role="main">
-		<!-- Content will be render here... -->
-	</div><!-- /#content -->
-
-	<!-- <div class="page-footer" role="contentinfo">
-		<hr><p><?= $copyright;?></p>
-	</div> -->
-
-	<!-- JavaScript -->
-	<script src="scripts/main.js"></script>
-	<script>
-jQuery(window).load(odTimeTracker.onLoad);
-jQuery(window).unload(odTimeTracker.onUnload);
-	</script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <title><?= $title; ?></title>
+    <meta name="description" lang="cs" content="<?= $description; ?>">
+  </head>
+  <body>
+    <nav id="header" class="navbar navbar-default navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbarCollapse" aria-expanded="false">
+          <span class="sr-only">Zobrazit/Skrýt navigaci</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">odTimeTracker</a>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <ul class="nav navbar-nav navbar">
+            <li class="active"><a href="#content">Seznam</a></li>
+            <li><a href="#">Kalendář</a></li>
+            <li><a href="#">Projekty</a></li>
+            <li><a href="#">Sestavy</a></li>
+            <li><a href="#">Faktury</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                &nbsp;<span class="glyphicon glyphicon-plus"></span><!-- <span class="caret"></span>-->
+              </a>
+              <ul class="dropdown-menu">
+                <li><a id="addActivityBtn" href="#" data-toggle="modal" data-target="#editActivityModal" data-mode="add">Aktivitu</a></li>
+                <li><a id="addProjectBtn" href="#" data-toggle="modal" data-target="#editProjectModal" data-mode="add">Projekt</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav><!-- /#header -->
+    <!-- Filter panel -->
+    <div id="filterDropdown" class="panel panel-default collapse">
+      <div class="panel-body">
+        <p><strong style="color:#f30;">XXX Dokončit filtr...</strong></p>
+      </div>
+      <div class="panel-footer">
+        <button type="button" class="btn btn-primary">Potvrdit</button>
+        <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#filterDropdown" aria-expanded="false" aria-controls="filterDropdown">Zavřít</button>
+      </div>
+    </div><!-- /#filterDropdown -->
+    <!-- Content -->
+    <div id="content" role="main">
+      <!-- Content will be render here... -->
+    </div><!-- /#content -->
+    <!-- <div class="page-footer" role="contentinfo">
+      <hr><p><?= $copyright; ?></p>
+    </div> -->
+    <!-- Activity form -->
+    <!-- #editActivityModal -->
+    <div id="editActivityModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addActivityBtn">
+      <div class="modal-dialog" style="width: 80%;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 id="editActivityModalTitle" class="modal-title">Aktivita</h4>
+          </div>
+          <form id="editActivityForm" class="modal-body form-horizontal">
+            <input id="formActivity_ActivityId" name="ActivityId" type="hidden" value=""/>
+            <input id="formActivity_ProjectId" name="ProjectId" type="hidden" value=""/>
+            <div>
+              <div class="panel-body">
+                <div class="form-group">
+                  <label for="formActivity_Name" class="col-sm-1 control-label">Jméno:</label>
+                  <div class="col-sm-11">
+                    <input class="form-control" id="formActivity_Name" name="Name" placeholder="Název aktivity" value="">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="formActivity_ProjectName" class="col-sm-1 control-label">Projekt:</label>
+                  <div class="col-sm-11">
+                    <input class="form-control" id="formActivity_ProjectName" name="ProjectName" placeholder="Název projektu" value="">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="formActivity_Tags" class="col-sm-1 control-label">Tagy:</label>
+                  <div class="col-sm-11">
+                    <input class="form-control" id="formActivity_Tags" name="Tags" placeholder="Tagy oddělené čárkou" value="">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="formActivity_Description" class="col-sm-1 control-label">Popis:</label>
+                  <div class="col-sm-11">
+                    <textarea class="form-control summernote" id="formActivity_Description" name="Description" placeholder="Podrobnější popis aktivity"></textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="reset" class="btn btn-default" data-dismiss="modal">Zrušit</button>
+                <button type="submit" class="btn btn-primary">Potvrdit</button>
+              </div>
+            </div>
+          </form><!-- /#editActivityForm -->
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /#editActivityModal -->
+    <!-- Project form -->
+    <div id="editProjectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addProjectBtn">
+      <div class="modal-dialog" style="width: 80%;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 id="editProjectModalTitle" class="modal-title">Projekt</h4>
+          </div>
+          <form id="editProjectForm" class="modal-body form-horizontal">
+            <input id="formProject_ProjectId" name="ProjectId" type="hidden" value=""/>
+            <div>
+              <div class="panel-body">
+                <div class="form-group">
+                  <label for="formProject_Name" class="col-sm-1 control-label">Jméno:</label>
+                  <div class="col-sm-11">
+                    <input class="form-control" id="formProject_Name" name="Name" placeholder="Název projektu" value="">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="formProject_Tags" class="col-sm-1 control-label">Tagy:</label>
+                  <div class="col-sm-11">
+                    <input class="form-control" id="formProject_Tags" name="Tags" placeholder="Tagy oddělené čárkou" value="" disabled="disabled">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="formProject_Description" class="col-sm-1 control-label">Popis:</label>
+                  <div class="col-sm-11">
+                    <textarea class="form-control summernote" id="formProject_Description" name="Description" placeholder="Podrobnější popis projektu"></textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+              <button type="reset" class="btn btn-default" data-dismiss="modal">Zrušit</button>
+                <button type="submit" class="btn btn-primary">Potvrdit</button>
+              </div>
+            </div>
+          </form><!-- /#editProjectForm -->
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /#editProjectModal -->
+    <!-- CSS -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="bower_components/summernote/dist/summernote.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <!-- JavaScript -->
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/jquery-ui/jquery-ui.min.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="bower_components/summernote/dist/summernote.min.js"></script>
+    <script src="scripts/main.js"></script>
+  </body>
 </html>
